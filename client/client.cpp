@@ -3,6 +3,7 @@
 // jrocha2, mconnol6, pdowling
 
 #include "client.h"
+#include "string.h"
 using namespace std;
 
 Client :: Client() {
@@ -63,11 +64,11 @@ void Client :: send_input() {
             //cout << "Invalid Operation" << endl;
         }
         
-        int len = command.length() + 1;
+        int len = command.length();
         if (sendto(udp_s, command.c_str(), len, 0, (struct sockaddr*) &sin, sizeof(struct sockaddr)) == -1) {
             cerr << "Client send error" << endl;
             exit(1);
-        }
+        } 
     }
 }
 

@@ -105,7 +105,7 @@ int main(int argc, char *argv[]) {
                 perror("Receive error!\n");
                 exit(1);
             }
-            printf("%s", buf);
+            printf("%s\n", buf);
         }
 
         printf("Client finished, close the connection.\n");
