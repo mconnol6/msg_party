@@ -33,7 +33,12 @@ class Server {
         Server(int, char*);
         void initialize_server(int);
         void accept_connections();
-        void receive_input();
+        bool receive_input();
+        string receive_udp_string();
+        int receive_udp_int();
+        void send_udp_int(int);
+        void execute_command(string);
+        bool shutdwn();
 
     private:
         int udp_s;

@@ -7,7 +7,10 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
+    bool cont = true;
     Server s(atoi(argv[1]), argv[2]);
-    s.accept_connections();
-    s.receive_input();
+    while (cont) {
+        s.accept_connections();
+        cont = s.receive_input();
+    }
 }

@@ -4,6 +4,7 @@
 
 #include "client.h"
 #include "string.h"
+#include <cstdio>
 using namespace std;
 
 Client :: Client() {
@@ -45,10 +46,45 @@ void Client :: connect_to_server(char* hostname, int port) {
     }
 }
 
+bool Client :: send_udp_string(string str) {
+    cout << "sending " << str << endl;
+    if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr*) &sin, sizeof(struct sockaddr)) == -1) {
+        //cerr << "Client send error" << endl;
+        perror("Client send error\n");
+        exit(1);
+    }
+}
+
+void Client :: send_udp_int(int i) {
+    i = htonl(i);
+    if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&sin, sizeof(struct sockaddr)) == -1) {
+        cerr << "Client send error" << endl;
+        exit(1);
+    }
+}
+
+void Client :: ack() {
+    send_udp_int(1);
+}
+
+int Client :: receive_udp_int() {
+    int i;
+    if (recvfrom(udp_s, &i, sizeof(i), 0, (struct sockaddr *)&sin, (socklen_t *)&sin) == -1) {
+        cerr << "Client receive error" << endl;
+        exit(1);
+    }
+    i = ntohl(i);
+
+    return i;
+}
+
 void Client :: send_input() {
     string command;
 
-    while (cin >> command) {        
+    bool cont = true;
+    while (cont) {        
+        cout << "top of loop" << endl;
+        cin >> command;
         if (command == "CRT") {
         } else if (command == "MSG") {
         } else if (command == "DLT") {
@@ -58,17 +94,21 @@ void Client :: send_input() {
         } else if (command == "APN") {
         } else if (command == "DWN") {
         } else if (command == "DST") {
-        } else if (command == "XIT") {
-        } else if (command == "SHT") {
         } else {
             //cout << "Invalid Operation" << endl;
         }
         
-        int len = command.length();
-        if (sendto(udp_s, command.c_str(), len, 0, (struct sockaddr*) &sin, sizeof(struct sockaddr)) == -1) {
-            cerr << "Client send error" << endl;
-            exit(1);
-        } 
+        send_udp_string(command);
+
+
+        if (command == "XIT") {
+            close_sockets();
+            cont = false;
+        }
+
+        if (command == "SHT") {
+            cont = shutdwn();
+        }
     }
 }
 
@@ -77,3 +117,23 @@ void Client :: print_commands() {
     cout << "CRT: Create Board \nMSG: Leave Message" << endl;
 }
 
+void Client :: close_sockets() {
+    close(tcp_s);
+    close(udp_s);
+}
+
+bool Client :: shutdwn() {
+    string password;
+    cout << "Enter admin password: ";
+    cin >> password;
+    send_udp_string(password);
+    int response = receive_udp_int();
+    if (response == 1) {
+        ack();
+        close_sockets();
+        return false;
+    } else {
+        cout << "Incorrect password" << endl;
+        return true;
+    }
+}
