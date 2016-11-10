@@ -27,5 +27,7 @@ class Client {
     private:
         int udp_s;
         int tcp_s;
-        struct sockaddr_in sin;
+        struct sockaddr_in udp_sin;
+        struct sockaddr_in tcp_sin;
+        int addr_len;
 };

@@ -120,7 +120,7 @@ int Server :: receive_udp_int() {
 
 void Server :: send_udp_int(int i) {
     i = htonl(i);
-    if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr)) == -1) {
+    if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_in)) == -1) {
         cerr << "Server send error" << endl;
         exit(1);
     }

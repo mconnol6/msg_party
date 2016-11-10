@@ -20,14 +20,20 @@ void Client :: connect_to_server(char* hostname, int port) {
         exit(1);
     }
 
-    // Build socket-in address
-    bzero((char *)&sin, sizeof(sin));
-    sin.sin_family = AF_INET;
-    bcopy(hp->h_addr, (char *)&sin.sin_addr, hp->h_length);
-    sin.sin_port = htons(port);
+    // Build socket-in address for udp
+    bzero((char *)&udp_sin, sizeof(udp_sin));
+    udp_sin.sin_family = AF_INET;
+    bcopy(hp->h_addr, (char *)&udp_sin.sin_addr, hp->h_length);
+    udp_sin.sin_port = htons(port);
+    
+    // Build socket-in address for tcp
+    bzero((char *)&tcp_sin, sizeof(tcp_sin));
+    tcp_sin.sin_family = PF_INET;
+    bcopy(hp->h_addr, (char *)&tcp_sin.sin_addr, hp->h_length);
+    tcp_sin.sin_port = htons(port);
 
     // Open UDP Socket
-    if ((udp_s = socket(PF_INET, SOCK_DGRAM, 0)) < 0) {
+    if ((udp_s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         cerr << "myfrm: udp socket" << endl;
         exit(1);
     }
@@ -39,15 +45,17 @@ void Client :: connect_to_server(char* hostname, int port) {
     }
 
     // Connect to server
-    if (connect(tcp_s, (struct sockaddr *)&sin, sizeof(sin)) < 0) {
+    if (connect(tcp_s, (struct sockaddr *)&tcp_sin, sizeof(tcp_sin)) < 0) {
         cerr << "myfrm: connect\n" << endl;
         close(tcp_s);
         exit(1);
     }
+
+    addr_len = sizeof(udp_sin);
 }
 
 bool Client :: send_udp_string(string str) {
-    if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr*) &sin, sizeof(struct sockaddr)) == -1) {
+    if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr*) &udp_sin, sizeof(struct sockaddr_in)) == -1) {
         //cerr << "Client send error" << endl;
         perror("Client send error\n");
         exit(1);
@@ -56,7 +64,7 @@ bool Client :: send_udp_string(string str) {
 
 void Client :: send_udp_int(int i) {
     i = htonl(i);
-    if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&sin, sizeof(struct sockaddr)) == -1) {
+    if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&udp_sin, sizeof(struct sockaddr_in)) == -1) {
         cerr << "Client send error" << endl;
         exit(1);
     }
@@ -68,7 +76,7 @@ void Client :: ack() {
 
 int Client :: receive_udp_int() {
     int i;
-    if (recvfrom(udp_s, &i, sizeof(i), 0, (struct sockaddr *)&sin, (socklen_t *)&sin) == -1) {
+    if (recvfrom(udp_s, &i, sizeof(i), 0, (struct sockaddr *)&udp_sin, (socklen_t *)&addr_len) == -1) {
         cerr << "Client receive error" << endl;
         exit(1);
     }
