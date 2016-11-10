@@ -47,7 +47,6 @@ void Client :: connect_to_server(char* hostname, int port) {
 }
 
 bool Client :: send_udp_string(string str) {
-    cout << "sending " << str << endl;
     if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr*) &sin, sizeof(struct sockaddr)) == -1) {
         //cerr << "Client send error" << endl;
         perror("Client send error\n");
@@ -83,7 +82,6 @@ void Client :: send_input() {
 
     bool cont = true;
     while (cont) {        
-        cout << "top of loop" << endl;
         cin >> command;
         if (command == "CRT") {
         } else if (command == "MSG") {
@@ -129,7 +127,6 @@ bool Client :: shutdwn() {
     send_udp_string(password);
     int response = receive_udp_int();
     if (response == 1) {
-        ack();
         close_sockets();
         return false;
     } else {

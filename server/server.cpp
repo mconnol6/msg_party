@@ -77,7 +77,6 @@ void Server :: accept_connections() {
 
 bool Server :: receive_input() {
     while(1) {
-        cout << "top of loop" << endl;
         string str = receive_udp_string();
 
         if (str == "XIT") {
@@ -98,15 +97,12 @@ string Server :: receive_udp_string() {
     char buf[4096];
     bzero((char *)&buf, sizeof(buf));
 
-    cout << "ready to receive " << endl;
-
     if ((ibytes = recvfrom(udp_s, buf, sizeof(buf), 0, (struct sockaddr *)&client_addr, (socklen_t *)&addr_len)) < 0) {
         cerr << "Receive error" << endl;
         exit(1);
     }
 
     string str(buf);
-    cout << "received " << str << endl;
     return str;
 }
 
@@ -147,14 +143,7 @@ bool Server :: shutdwn() {
     string password = receive_udp_string();
     if (password == admin_password) {
         send_udp_int(1);
-        //need to receive ack from client first
-        int ack = receive_udp_int();
-        if (ack == 1) {
-            //need to delete all files
-            return true;
-        } else {
-            return false;
-        }
+        return true;
     } else {
         send_udp_int(0);
         return false;
