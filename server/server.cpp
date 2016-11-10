@@ -3,7 +3,10 @@
 using namespace std;
 
 
-Server :: Server() {
+Server :: Server(int port, char* password) {
+    initialize_server(port);
+    string admin(password);
+    admin_password = admin;
 }
 
 void Server :: initialize_server(int port) {

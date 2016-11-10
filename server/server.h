@@ -12,11 +12,25 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
+#include <vector>
+#include <map>
 using namespace std;
+
+typedef struct Message {
+    string msg;
+    string user;
+    bool is_appended;
+} Message;
+
+typedef struct Board {
+    vector<Message> msgs;
+    string creator;
+    string filename;
+} Board;
 
 class Server {
     public:
-        Server();
+        Server(int, char*);
         void initialize_server(int);
         void accept_connections();
         void receive_input();
@@ -29,4 +43,8 @@ class Server {
         struct sockaddr_in udp_sin;
         struct sockaddr_in tcp_sin;
         struct sockaddr_in client_addr;
+        string admin_password;
+        string current_user;
+        vector<Board> boards;
+        map<string, string> users;
 };
