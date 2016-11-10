@@ -36,8 +36,10 @@ class Server {
         bool receive_input();
         string receive_udp_string();
         int receive_udp_int();
+        void send_udp_string(string);
         void send_udp_int(int);
         void execute_command(string);
+        void list_boards();
         bool shutdwn();
 
     private:

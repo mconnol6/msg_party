@@ -78,7 +78,6 @@ void Server :: accept_connections() {
 bool Server :: receive_input() {
     while(1) {
         string str = receive_udp_string();
-
         if (str == "XIT") {
             return true;
         } else if (str == "SHT") {
@@ -118,6 +117,13 @@ int Server :: receive_udp_int() {
     return i; 
 }
 
+void Server :: send_udp_string(string str) {
+    if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_in)) == -1) {
+        cerr << "Server send error" << endl;
+        exit(1);
+    }
+}
+
 void Server :: send_udp_int(int i) {
     i = htonl(i);
     if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_in)) == -1) {
@@ -132,10 +138,24 @@ void Server :: execute_command(string command) {
     } else if (command == "DLT") {
     } else if (command == "EDT") {
     } else if (command == "LIS") {
+        list_boards();
     } else if (command == "RDB") {
     } else if (command == "APN") {
     } else if (command == "DWN") {
     }
+}
+
+// sends board listing to client
+void Server :: list_boards() {
+    string listing;
+    if (boards.size() == 0) {
+        listing = "No Boards Currently Created";
+    } else {
+        for (int i = 0; i < boards.size(); i++) {
+            listing += boards[i].filename + "\n";
+        }
+    }
+    send_udp_string(listing);
 }
 
 //returns whether or not the server has been cleaned up/shutdown

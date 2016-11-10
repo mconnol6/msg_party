@@ -56,8 +56,7 @@ void Client :: connect_to_server(char* hostname, int port) {
 
 bool Client :: send_udp_string(string str) {
     if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr*) &udp_sin, sizeof(struct sockaddr_in)) == -1) {
-        //cerr << "Client send error" << endl;
-        perror("Client send error\n");
+        cerr << "Client send error" << endl;
         exit(1);
     }
 }
@@ -72,6 +71,17 @@ void Client :: send_udp_int(int i) {
 
 void Client :: ack() {
     send_udp_int(1);
+}
+
+string Client :: receive_udp_string() {
+    char buf[4096];
+
+    if (recvfrom(udp_s, buf, sizeof(buf), 0, (struct sockaddr *)&udp_sin, (socklen_t *)&addr_len) == -1) {
+        cerr << "Client receive error" << endl;
+        exit(1);
+    }
+    string str(buf);
+    return str;
 }
 
 int Client :: receive_udp_int() {
@@ -96,24 +106,19 @@ void Client :: send_input() {
         } else if (command == "DLT") {
         } else if (command == "EDT") {
         } else if (command == "LIS") {
+            list_boards();
         } else if (command == "RDB") {
         } else if (command == "APN") {
         } else if (command == "DWN") {
         } else if (command == "DST") {
-        } else {
-            //cout << "Invalid Operation" << endl;
-        }
-        
-        send_udp_string(command);
-
-
-        if (command == "XIT") {
+        } else if (command == "XIT") {
+            send_udp_string("XIT");
             close_sockets();
             cont = false;
-        }
-
-        if (command == "SHT") {
+        } else if (command == "SHT") {
             cont = shutdwn();
+        } else {
+            cout << "Invalid Operation" << endl;
         }
     }
 }
@@ -128,7 +133,16 @@ void Client :: close_sockets() {
     close(udp_s);
 }
 
+void Client :: list_boards() {
+    send_udp_string("LIS");
+    string listing = receive_udp_string();
+    cout << "Board listing:" << endl;
+    cout << listing << endl;
+}
+
 bool Client :: shutdwn() {
+    send_udp_string("SHT");
+
     string password;
     cout << "Enter admin password: ";
     cin >> password;
