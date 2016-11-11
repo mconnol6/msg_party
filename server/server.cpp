@@ -132,6 +132,21 @@ void Server :: send_udp_int(int i) {
     }
 }
 
+void Server :: send_tcp_file(string filename) {
+    char buf[4096];
+    int len;
+    FILE *fp = fopen(filename.c_str(), "r");
+    
+    while ((len = fread(buf, sizeof(char), sizeof(buf), fp)) > 0) {
+        if (send(new_tcp_s, buf, len, 0) == -1) {
+            cerr << "TCP Send error!" << endl;
+            exit(1);
+        }
+        bzero(buf, sizeof(buf));
+    }
+    fclose(fp);   
+}
+
 void Server :: execute_command(string command) {
     if (command == "CRT") {
     } else if (command == "MSG") {
@@ -140,9 +155,26 @@ void Server :: execute_command(string command) {
     } else if (command == "LIS") {
         list_boards();
     } else if (command == "RDB") {
+        read_board();
     } else if (command == "APN") {
     } else if (command == "DWN") {
     }
+}
+
+// sends board contents to client
+void Server :: read_board() {
+    int filesize;
+    struct stat st;
+    
+    string filename = receive_udp_string();
+    if (access(filename.c_str(), F_OK) != -1) {
+        stat(filename.c_str(), &st);
+        send_udp_int(st.st_size);
+    } else {
+        send_udp_int(-1);
+        return;
+    }
+    send_tcp_file(filename);
 }
 
 // sends board listing to client

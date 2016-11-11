@@ -7,6 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -38,7 +39,9 @@ class Server {
         int receive_udp_int();
         void send_udp_string(string);
         void send_udp_int(int);
+        void send_tcp_file(string);
         void execute_command(string);
+        void read_board();
         void list_boards();
         bool shutdwn();
 
