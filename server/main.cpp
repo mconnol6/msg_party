@@ -10,7 +10,11 @@ int main(int argc, char** argv) {
     bool cont = true;
     Server s(atoi(argv[1]), argv[2]);
     while (cont) {
-        s.accept_connections();
-        cont = s.receive_input();
+        bool accepted = s.accept_connections();
+
+        //check if signin was successful
+        if (accepted) {
+            cont = s.receive_input();
+        }
     }
 }

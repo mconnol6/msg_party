@@ -28,7 +28,7 @@ bool Client :: connect_to_server(char* hostname, int port) {
     
     // Build socket-in address for tcp
     bzero((char *)&tcp_sin, sizeof(tcp_sin));
-    tcp_sin.sin_family = PF_INET;
+    tcp_sin.sin_family = AF_INET;
     bcopy(hp->h_addr, (char *)&tcp_sin.sin_addr, hp->h_length);
     tcp_sin.sin_port = htons(port);
 
@@ -42,7 +42,7 @@ bool Client :: connect_to_server(char* hostname, int port) {
     addr_len = sizeof(udp_sin);
 
     // Open TCP Socket
-    if ((tcp_s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((tcp_s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         cerr << "myfrm: tcp socket" << endl;
         exit(1);
     }
@@ -54,8 +54,7 @@ bool Client :: connect_to_server(char* hostname, int port) {
         exit(1);
     }
     
-    //bool success = signin_user();
-    bool success = true;
+    bool success = signin_user();
 
     if (!success) {
         close_sockets();
@@ -67,7 +66,6 @@ bool Client :: connect_to_server(char* hostname, int port) {
 
 bool Client :: send_udp_string(string str) {
     if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr*) &udp_sin, sizeof(struct sockaddr_in)) == -1) {
-        //cerr << "Client send error" << endl;
         perror("Client send error\n");
         exit(1);
     }
@@ -98,6 +96,7 @@ int Client :: receive_udp_int() {
 
 //returns 1 if signin successful and 0 otherwise
 bool Client :: signin_user() {
+    send_udp_int(1);
     int ack = receive_udp_int();
     if (ack != 1) {
         cout << "Ack error" << endl;
@@ -134,6 +133,7 @@ void Client :: send_input() {
 
     bool cont = true;
     while (cont) {        
+        cout << "Enter command: ";
         cin >> command;
         if (command == "CRT") {
         } else if (command == "MSG") {

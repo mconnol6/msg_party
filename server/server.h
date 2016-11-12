@@ -32,7 +32,7 @@ class Server {
     public:
         Server(int, char*);
         void initialize_server(int);
-        void accept_connections();
+        bool accept_connections();
         bool receive_input();
         string receive_udp_string();
         int receive_udp_int();

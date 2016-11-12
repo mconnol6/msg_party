@@ -12,7 +12,8 @@ void Server :: initialize_server(int port) {
     
     //set up udp
     //build address data structure
-    bzero((char *)&udp_sin, sizeof(udp_sin));
+    bzero((char *)&client_addr, sizeof(struct sockaddr_in));
+    bzero((char *)&udp_sin, sizeof(struct sockaddr_in));
     udp_sin.sin_family = AF_INET;
     udp_sin.sin_addr.s_addr = INADDR_ANY;
     udp_sin.sin_port = htons(port);
@@ -65,7 +66,7 @@ void Server :: initialize_server(int port) {
     }
 }
 
-void Server :: accept_connections() {
+bool Server :: accept_connections() {
     int len = sizeof(tcp_sin);
     
     if ((new_tcp_s = accept(tcp_s, (struct sockaddr *)&tcp_sin, (socklen_t *)&len)) < 0) {
@@ -73,14 +74,16 @@ void Server :: accept_connections() {
         exit(1);
     }
 
-    //bool success = signin_user();
-    bool success = true;
+    bool success = signin_user();
     
+    //if signin was not successful, return false
     if (!success) {
-        return;
+        return false;
     }
 
     cout << "Client connected" << endl;
+
+    return true;
 }
 
 bool Server :: receive_input() {
@@ -129,7 +132,7 @@ int Server :: receive_udp_int() {
 void Server :: send_udp_int(int i) {
     i = htonl(i);
     if (sendto(udp_s, &i, sizeof(int), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_in)) == -1) {
-        cerr << "Server send error" << endl;
+        perror("Server send error");
         exit(1);
     }
 }
@@ -138,13 +141,30 @@ void Server :: ack() {
     send_udp_int(1);
 }
 
+//returns true if signin is successful and false otherwise
 bool Server :: signin_user() {
+    receive_udp_int();
     ack();
     string username, password;
     username = receive_udp_string();
     ack();
     password = receive_udp_string();
-    send_udp_int(1);
+
+    //if user is not in map of users, add their username/password
+    if (users.find(username) == users.end()) {
+        users[username] = password;
+        send_udp_int(1);
+        return true;
+    } else {
+        //otherwise check if password matches the one in the map
+        if (users[username] == password) {
+            send_udp_int(1);
+            return true;
+        } else {
+            send_udp_int(0);
+            return false;
+        }
+    }
 }
 
 void Server :: execute_command(string command) {
