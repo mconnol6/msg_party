@@ -10,7 +10,7 @@ using namespace std;
 Client :: Client() {
 }
 
-void Client :: connect_to_server(char* hostname, int port) {
+bool Client :: connect_to_server(char* hostname, int port) {
     struct hostent *hp;
     
     // Translate host name into IP address
@@ -32,11 +32,14 @@ void Client :: connect_to_server(char* hostname, int port) {
     bcopy(hp->h_addr, (char *)&tcp_sin.sin_addr, hp->h_length);
     tcp_sin.sin_port = htons(port);
 
+
     // Open UDP Socket
     if ((udp_s = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         cerr << "myfrm: udp socket" << endl;
         exit(1);
     }
+    
+    addr_len = sizeof(udp_sin);
 
     // Open TCP Socket
     if ((tcp_s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -50,8 +53,16 @@ void Client :: connect_to_server(char* hostname, int port) {
         close(tcp_s);
         exit(1);
     }
+    
+    //bool success = signin_user();
+    bool success = true;
 
-    addr_len = sizeof(udp_sin);
+    if (!success) {
+        close_sockets();
+        return false;
+    }
+
+    return true;
 }
 
 bool Client :: send_udp_string(string str) {
@@ -83,6 +94,39 @@ int Client :: receive_udp_int() {
     i = ntohl(i);
 
     return i;
+}
+
+//returns 1 if signin successful and 0 otherwise
+bool Client :: signin_user() {
+    int ack = receive_udp_int();
+    if (ack != 1) {
+        cout << "Ack error" << endl;
+        return false;
+    }
+
+    string username, password;
+    cout << "Enter username: ";
+    cin >> username;
+    send_udp_string(username);
+
+    ack = receive_udp_int();
+    if (ack != 1) {
+        cout << "Ack error" << endl;
+        return false;
+    }
+
+    cout << "Enter password: ";
+    cin >> password;
+    send_udp_string(password);
+
+    ack = receive_udp_int();
+
+    if (ack == 1) {
+        return true;
+    } else {
+        cout << "Incorrect password" << endl;
+        return false;
+    }
 }
 
 void Client :: send_input() {

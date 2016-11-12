@@ -41,7 +41,7 @@ void Server :: initialize_server(int port) {
     tcp_sin.sin_port = htons(port);
 
     //create socket
-    if ((tcp_s = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
+    if ((tcp_s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         cerr << "myfrmd: socket error" << endl;
         exit(1);
     }
@@ -66,12 +66,20 @@ void Server :: initialize_server(int port) {
 }
 
 void Server :: accept_connections() {
-    int len;
-
+    int len = sizeof(tcp_sin);
+    
     if ((new_tcp_s = accept(tcp_s, (struct sockaddr *)&tcp_sin, (socklen_t *)&len)) < 0) {
-        cerr << "myfrmd: accept error" << endl;
+        perror("myfrmd: accept error");
         exit(1);
     }
+
+    //bool success = signin_user();
+    bool success = true;
+    
+    if (!success) {
+        return;
+    }
+
     cout << "Client connected" << endl;
 }
 
@@ -124,6 +132,19 @@ void Server :: send_udp_int(int i) {
         cerr << "Server send error" << endl;
         exit(1);
     }
+}
+
+void Server :: ack() {
+    send_udp_int(1);
+}
+
+bool Server :: signin_user() {
+    ack();
+    string username, password;
+    username = receive_udp_string();
+    ack();
+    password = receive_udp_string();
+    send_udp_int(1);
 }
 
 void Server :: execute_command(string command) {

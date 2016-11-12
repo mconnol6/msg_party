@@ -13,6 +13,11 @@ int main(int argc, char** argv) {
     }
     
     Client c;
-    c.connect_to_server(argv[1], atoi(argv[2]));
+    
+    if (!c.connect_to_server(argv[1], atoi(argv[2]))) {
+        return 0;
+    }
+
     c.send_input();
+    return 0;
 }

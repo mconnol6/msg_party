@@ -37,6 +37,8 @@ class Server {
         string receive_udp_string();
         int receive_udp_int();
         void send_udp_int(int);
+        void ack();
+        bool signin_user();
         void execute_command(string);
         bool shutdwn();
 

@@ -14,11 +14,12 @@ using namespace std;
 class Client {
     public:
         Client();
-        void connect_to_server(char*, int);
+        bool connect_to_server(char*, int);
         bool send_udp_string(string);
         void send_udp_int(int);
         void ack();
         int receive_udp_int();
+        bool signin_user();
         void print_commands();
         void send_input();
         void close_sockets();
