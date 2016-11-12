@@ -89,7 +89,6 @@ bool Server :: accept_connections() {
 bool Server :: receive_input() {
     while(1) {
         string str = receive_udp_string();
-
         if (str == "XIT") {
             return true;
         } else if (str == "SHT") {
@@ -127,6 +126,13 @@ int Server :: receive_udp_int() {
     i = ntohl(i);
 
     return i; 
+}
+
+void Server :: send_udp_string(string str) {
+    if (sendto(udp_s, str.c_str(), str.length(), 0, (struct sockaddr *)&client_addr, sizeof(struct sockaddr_in)) == -1) {
+        cerr << "Server send error" << endl;
+        exit(1);
+    }
 }
 
 void Server :: send_udp_int(int i) {
@@ -167,16 +173,62 @@ bool Server :: signin_user() {
     }
 }
 
+void Server :: send_tcp_file(string filename) {
+    char buf[4096];
+    int len;
+    FILE *fp = fopen(filename.c_str(), "r");
+    
+    while ((len = fread(buf, sizeof(char), sizeof(buf), fp)) > 0) {
+        if (send(new_tcp_s, buf, len, 0) == -1) {
+            cerr << "TCP Send error!" << endl;
+            exit(1);
+        }
+        bzero(buf, sizeof(buf));
+    }
+    fclose(fp);   
+}
+
 void Server :: execute_command(string command) {
     if (command == "CRT") {
     } else if (command == "MSG") {
     } else if (command == "DLT") {
     } else if (command == "EDT") {
     } else if (command == "LIS") {
+        list_boards();
     } else if (command == "RDB") {
+        read_board();
     } else if (command == "APN") {
     } else if (command == "DWN") {
     }
+}
+
+// sends board contents to client
+void Server :: read_board() {
+    int filesize;
+    struct stat st;
+    
+    string filename = receive_udp_string();
+    if (access(filename.c_str(), F_OK) != -1) {
+        stat(filename.c_str(), &st);
+        send_udp_int(st.st_size);
+    } else {
+        send_udp_int(-1);
+        return;
+    }
+    send_tcp_file(filename);
+}
+
+// sends board listing to client
+void Server :: list_boards() {
+    string listing;
+    if (boards.size() == 0) {
+        listing = "No Boards Currently Created";
+    } else {
+        for (int i = 0; i < boards.size(); i++) {
+            listing += boards[i].filename + "\n";
+        }
+    }
+    send_udp_string(listing);
 }
 
 //returns whether or not the server has been cleaned up/shutdown

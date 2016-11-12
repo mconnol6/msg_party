@@ -18,11 +18,14 @@ class Client {
         bool send_udp_string(string);
         void send_udp_int(int);
         void ack();
+        string receive_udp_string();
         int receive_udp_int();
         bool signin_user();
         void print_commands();
         void send_input();
         void close_sockets();
+        void list_boards();
+        void read_board();
         bool shutdwn();
 
     private:

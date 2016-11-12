@@ -83,6 +83,17 @@ void Client :: ack() {
     send_udp_int(1);
 }
 
+string Client :: receive_udp_string() {
+    char buf[4096];
+
+    if (recvfrom(udp_s, buf, sizeof(buf), 0, (struct sockaddr *)&udp_sin, (socklen_t *)&addr_len) == -1) {
+        cerr << "Client receive error" << endl;
+        exit(1);
+    }
+    string str(buf);
+    return str;
+}
+
 int Client :: receive_udp_int() {
     int i;
     if (recvfrom(udp_s, &i, sizeof(i), 0, (struct sockaddr *)&udp_sin, (socklen_t *)&addr_len) == -1) {
@@ -133,38 +144,39 @@ void Client :: send_input() {
 
     bool cont = true;
     while (cont) {        
-        cout << "Enter command: ";
+        print_commands();
         cin >> command;
         if (command == "CRT") {
         } else if (command == "MSG") {
         } else if (command == "DLT") {
         } else if (command == "EDT") {
         } else if (command == "LIS") {
+            list_boards();
         } else if (command == "RDB") {
+            read_board();
         } else if (command == "APN") {
         } else if (command == "DWN") {
         } else if (command == "DST") {
-        } else {
-            //cout << "Invalid Operation" << endl;
-        }
-        
-        send_udp_string(command);
-
-
-        if (command == "XIT") {
+        } else if (command == "XIT") {
+            send_udp_string("XIT");
             close_sockets();
             cont = false;
-        }
-
-        if (command == "SHT") {
+        } else if (command == "SHT") {
             cont = shutdwn();
+        } else {
+            cout << "Invalid Operation" << endl;
         }
     }
 }
 
 void Client :: print_commands() {
-    cout << "Enter one of the following commands:" << endl;
-    cout << "CRT: Create Board \nMSG: Leave Message" << endl;
+    cout << "\nEnter one of the following commands:" << endl;
+    cout << "CRT: Create Board \tMSG: Leave Message" << endl;
+    cout << "DLT: Delete Message \tEDT: Edit Message" << endl;
+    cout << "LIS: List Boards \tRDB: Read Board" << endl;
+    cout << "APN: Append File \tDWN: Download File" << endl;
+    cout << "DST: Destroy Board \tXIT: Exit Client \nSHT: Shutdown Server\n" << endl;
+    cout << "Enter your command: ";
 }
 
 void Client :: close_sockets() {
@@ -172,7 +184,44 @@ void Client :: close_sockets() {
     close(udp_s);
 }
 
+void Client :: read_board() {
+    string board;
+    
+    send_udp_string("RDB");
+    cout << "Enter name of the board to read: ";
+    cin >> board;
+    send_udp_string(board);
+
+    int size = receive_udp_int();
+    int len, recvd = 0;
+    char buf[4096];
+    if (size < 0) {
+        cout << "Not a valid board!" << endl;
+    } else {
+        while (recvd < size) {
+            bzero(buf, sizeof(buf));
+            if ((len = recv(tcp_s, buf, sizeof(buf), 0)) == -1) {
+                cerr << "Receive error!" << endl;
+                close(tcp_s);
+                exit(1);
+            }
+            recvd += len;
+            string str(buf);
+            cout << str;
+        }
+    }
+}
+
+void Client :: list_boards() {
+    send_udp_string("LIS");
+    string listing = receive_udp_string();
+    cout << "Board listing:" << endl;
+    cout << listing << endl;
+}
+
 bool Client :: shutdwn() {
+    send_udp_string("SHT");
+
     string password;
     cout << "Enter admin password: ";
     cin >> password;
