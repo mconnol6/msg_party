@@ -147,6 +147,7 @@ void Client :: send_input() {
         print_commands();
         cin >> command;
         if (command == "CRT") {
+            create_board();
         } else if (command == "MSG") {
         } else if (command == "DLT") {
         } else if (command == "EDT") {
@@ -182,6 +183,22 @@ void Client :: print_commands() {
 void Client :: close_sockets() {
     close(tcp_s);
     close(udp_s);
+}
+
+void Client :: create_board() {
+    string board;
+    send_udp_string("CRT");
+    cout << "Enter name of board to create: ";
+    cin >> board;
+    send_udp_string(board);
+    int success = receive_udp_int();
+    if (success) {
+        cout << "Board created successfully." << endl;
+    } else if (success == -1) {
+        cout << "The board was not created successfully." << endl;
+    } else {
+        cout << "The board already exists." << endl;
+    }
 }
 
 void Client :: read_board() {

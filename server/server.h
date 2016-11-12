@@ -15,6 +15,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <unordered_set>
 using namespace std;
 
 typedef struct Message {
@@ -43,6 +44,7 @@ class Server {
         bool signin_user();
         void send_tcp_file(string);
         void execute_command(string);
+        void create_board();
         void read_board();
         void list_boards();
         bool shutdwn();
@@ -59,4 +61,5 @@ class Server {
         string current_user;
         vector<Board> boards;
         map<string, string> users;
+        unordered_set<string> filenames;
 };

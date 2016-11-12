@@ -24,6 +24,7 @@ class Client {
         void print_commands();
         void send_input();
         void close_sockets();
+        void create_board();
         void list_boards();
         void read_board();
         bool shutdwn();

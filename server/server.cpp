@@ -159,12 +159,14 @@ bool Server :: signin_user() {
     //if user is not in map of users, add their username/password
     if (users.find(username) == users.end()) {
         users[username] = password;
+        current_user = username;
         send_udp_int(1);
         return true;
     } else {
         //otherwise check if password matches the one in the map
         if (users[username] == password) {
             send_udp_int(1);
+            current_user = username;
             return true;
         } else {
             send_udp_int(0);
@@ -190,6 +192,7 @@ void Server :: send_tcp_file(string filename) {
 
 void Server :: execute_command(string command) {
     if (command == "CRT") {
+        create_board();
     } else if (command == "MSG") {
     } else if (command == "DLT") {
     } else if (command == "EDT") {
@@ -200,6 +203,43 @@ void Server :: execute_command(string command) {
     } else if (command == "APN") {
     } else if (command == "DWN") {
     }
+}
+
+void Server :: create_board() {
+    string board_name = receive_udp_string();
+
+    //if filename aleady exists
+    if (filenames.find(board_name) != filenames.end()) {
+        send_udp_int(0);
+        return;
+    }
+
+    //create board object
+    Board b = {
+        vector<Message>(),
+        current_user,
+        board_name
+    };
+
+    boards.push_back(b);
+    
+    //create file for board
+    FILE *f = fopen(board_name.c_str(), "w+");
+
+    if (f) {
+        filenames.insert(board_name);
+
+        //add user's name to the top of the board
+        fwrite(current_user.c_str(), sizeof(char), current_user.length(), f);
+
+        fclose(f);
+        
+        //send confirmation to user
+        send_udp_int(1);
+    } else {
+        send_udp_int(-1);
+    }
+
 }
 
 // sends board contents to client
@@ -236,6 +276,11 @@ bool Server :: shutdwn() {
     string password = receive_udp_string();
     if (password == admin_password) {
         send_udp_int(1);
+
+        //delete files
+        for (auto it=filenames.begin(); it!=filenames.end(); it++) {
+            unlink((*it).c_str());
+        }
         return true;
     } else {
         send_udp_int(0);
