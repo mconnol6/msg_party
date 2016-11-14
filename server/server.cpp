@@ -1,5 +1,10 @@
 // server.cpp
 #include "server.h"
+#include <vector>
+#include <iomanip>
+#include <iostream>
+#include <string>
+#include <sstream>
 using namespace std;
 
 Server :: Server(int port, char* password) {
@@ -244,13 +249,9 @@ void Server :: create_board() {
     }
 
     //create board object
-    Board b = {
-        vector<Message>(),
-        current_user,
-        board_name
-    };
+    Board b({ vector<Message>(), current_user, board_name, 0 });
 
-    boards.push_back(b);
+    boards[board_name] = b;
     
     //create file for board
     FILE *f = fopen(board_name.c_str(), "w+");
@@ -259,7 +260,7 @@ void Server :: create_board() {
         filenames.insert(board_name);
 
         //add user's name to the top of the board
-        fwrite(current_user.c_str(), sizeof(char), current_user.length(), f);
+        fwrite((current_user + "\n").c_str(), sizeof(char), current_user.length() + 1, f);
 
         fclose(f);
         
@@ -293,8 +294,8 @@ void Server :: list_boards() {
     if (boards.size() == 0) {
         listing = "No Boards Currently Created";
     } else {
-        for (int i = 0; i < boards.size(); i++) {
-            listing += boards[i].filename + "\n";
+        for (auto it = boards.begin(); it != boards.end(); it++) {
+            listing += it->second.filename;
         }
     }
     send_udp_string(listing);
@@ -328,9 +329,9 @@ void Server :: append_file() {
     }
 
     receive_tcp_file(attachment, filesize);
-    cout << "Received successfully." << endl;
 
     //add new message to board
+    addMessage(board, "Appended " + attachment + " to the board.", current_user, true);
 }
 
 //returns whether or not the server has been cleaned up/shutdown
@@ -348,4 +349,32 @@ bool Server :: shutdwn() {
         send_udp_int(0);
         return false;
     }
+}
+
+void Server :: addMessage(string board, string msg, string user, bool is_appended) {
+    Message m({ msg, user, is_appended });
+    boards[board].msgs.push_back(m); 
+
+    stringstream ss;
+    ss << setw(5);
+
+    if (!is_appended) {
+        boards[board].nonappended_msgs++;
+        ss << boards[board].nonappended_msgs;
+    } else {
+        ss << "";
+    }
+    ss  << setw(10)
+        << user
+        << ": "
+        << msg
+        << endl;
+
+
+    string add_msg = ss.str();
+
+    FILE *fp = fopen(board.c_str(), "a");
+    fwrite(add_msg.c_str(), sizeof(char), add_msg.length(), fp);
+
+    fclose(fp);
 }

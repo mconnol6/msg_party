@@ -28,6 +28,7 @@ typedef struct Board {
     vector<Message> msgs;
     string creator;
     string filename;
+    int nonappended_msgs;
 } Board;
 
 class Server {
@@ -50,6 +51,7 @@ class Server {
         void list_boards();
         void append_file();
         bool shutdwn();
+        void addMessage(string, string, string, bool);
 
     private:
         int udp_s;
@@ -61,7 +63,7 @@ class Server {
         struct sockaddr_in client_addr;
         string admin_password;
         string current_user;
-        vector<Board> boards;
+        map<string, Board> boards;
         map<string, string> users;
         unordered_set<string> filenames;
 };
