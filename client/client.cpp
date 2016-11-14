@@ -325,6 +325,8 @@ void Client :: append_file() {
 
         //send file
         send_tcp_file(filename);
+
+        cout << "Success!" << endl;
     }
 }
 
@@ -354,6 +356,8 @@ void Client :: download_file() {
     }
 
     receive_tcp_file(filename, file_size);
+
+    cout << "Success!" << endl;
 }
 
 bool Client :: shutdwn() {
