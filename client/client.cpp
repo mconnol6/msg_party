@@ -97,6 +97,34 @@ void Client :: send_tcp_file(string filename) {
     fclose(fp);   
 }
 
+void Client :: receive_tcp_file(string attachment, int filesize) {
+    FILE *fp = fopen(attachment.c_str(), "w+");
+    char buf[4096];
+    int len;
+
+    if (!fp) {
+        return;
+    }
+
+    int total_read = 0;
+
+    while(total_read < filesize) {
+        bzero(buf, sizeof(buf));
+        if ((len = recv(tcp_s, buf, sizeof(buf), 0)) == -1) {
+            perror("\nReceive error");
+            close(tcp_s);
+            exit(1);
+        }
+
+        total_read += len;
+        
+        //add to file
+        fwrite(buf, sizeof(char), len, fp);
+    }
+
+    fclose(fp);
+}
+
 void Client :: ack() {
     send_udp_int(1);
 }
@@ -176,6 +204,7 @@ void Client :: send_input() {
         } else if (command == "APN") {
             append_file();
         } else if (command == "DWN") {
+            download_file();
         } else if (command == "DST") {
         } else if (command == "XIT") {
             send_udp_string("XIT");
@@ -297,6 +326,34 @@ void Client :: append_file() {
         //send file
         send_tcp_file(filename);
     }
+}
+
+void Client :: download_file() {
+    send_udp_string("DWN");
+    string board, filename;
+
+    //get user input
+    cout << "Enter name of board: ";
+    cin >> board;
+    cout << "Enter name of file: ";
+    cin >> filename;
+
+    send_udp_string(board);
+    send_udp_string(filename);
+
+    int file_size = receive_udp_int();
+
+    if (file_size == -1) {
+        cout << "Error: board does not exist." << endl;
+        return;
+    }
+
+    if (file_size == -2) {
+        cout << "Error: attachment does not exist." << endl;
+        return;
+    }
+
+    receive_tcp_file(filename, file_size);
 }
 
 bool Client :: shutdwn() {

@@ -50,6 +50,7 @@ class Server {
         void read_board();
         void list_boards();
         void append_file();
+        void download_file();
         bool shutdwn();
         void addMessage(string, string, string, bool);
 

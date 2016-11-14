@@ -236,6 +236,7 @@ void Server :: execute_command(string command) {
     } else if (command == "APN") {
         append_file();
     } else if (command == "DWN") {
+        download_file();
     }
 }
 
@@ -331,7 +332,38 @@ void Server :: append_file() {
     receive_tcp_file(attachment, filesize);
 
     //add new message to board
-    addMessage(board, "Appended " + attachment + " to the board.", current_user, true);
+    addMessage(board, "Appended " + filename + " to the board.", current_user, true);
+
+    filenames.insert(attachment);
+}
+
+void Server :: download_file() {
+    int file_size;
+    struct stat st;
+
+    string board = receive_udp_string();
+    string filename = receive_udp_string();
+
+    string attachment = board + "-" + filename;
+
+    //check that board and attachment exist
+    if (filenames.find(board) == filenames.end()) {
+       send_udp_int(-1);
+       return;
+    } 
+    
+    if (filenames.find(attachment) == filenames.end()) {
+        send_udp_int(-2);
+        return;
+    }
+
+    //get file size
+    stat(attachment.c_str(), &st);
+    file_size = st.st_size;
+    send_udp_int(file_size);
+
+    //send file
+    send_tcp_file(attachment);
 }
 
 //returns whether or not the server has been cleaned up/shutdown
