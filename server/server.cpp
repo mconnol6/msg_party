@@ -296,7 +296,7 @@ void Server :: list_boards() {
         listing = "No Boards Currently Created";
     } else {
         for (auto it = boards.begin(); it != boards.end(); it++) {
-            listing += it->second.filename;
+            listing += it->second.filename + "\n";
         }
     }
     send_udp_string(listing);
