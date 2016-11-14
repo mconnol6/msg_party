@@ -266,12 +266,6 @@ void Client :: append_file() {
     cout << "Enter file name: ";
     cin >> filename;
 
-    //make sure that file exists
-    if (access(filename.c_str(), F_OK) == -1) {
-        cout << "The file does not exist." << endl;
-        return;
-    }
-
     send_udp_string("APN");
     send_udp_string(board);
     send_udp_string(filename);
@@ -287,16 +281,21 @@ void Client :: append_file() {
         return;
     }
 
-    if (success == -2) {
-        cout << "Error creating file" << endl;
-        return;
-    }
-
     if (success) {
+        //make sure that file exists
+        if (access(filename.c_str(), F_OK) == -1) {
+            cout << "The file does not exist." << endl;
+            send_udp_int(-1);
+            return;
+        }
+
         //get file size
         stat(filename.c_str(), &st);
         file_size = st.st_size;
         send_udp_int(file_size);
+
+        //send file
+        send_tcp_file(filename);
     }
 }
 

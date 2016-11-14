@@ -190,6 +190,34 @@ void Server :: send_tcp_file(string filename) {
     fclose(fp);   
 }
 
+void Server :: receive_tcp_file(string attachment, int filesize) {
+    FILE *fp = fopen(attachment.c_str(), "w+");
+    char buf[4096];
+    int len;
+
+    if (!fp) {
+        return;
+    }
+
+    int total_read = 0;
+
+    while(total_read < filesize) {
+        bzero(buf, sizeof(buf));
+        if ((len = recv(new_tcp_s, buf, sizeof(buf), 0)) == -1) {
+            perror("\nReceive error");
+            close(tcp_s);
+            exit(1);
+        }
+
+        total_read += len;
+        
+        //add to file
+        fwrite(buf, sizeof(char), len, fp);
+    }
+
+    fclose(fp);
+}
+
 void Server :: execute_command(string command) {
     if (command == "CRT") {
         create_board();
@@ -290,18 +318,19 @@ void Server :: append_file() {
         return;
     }
     
-    FILE *fp = fopen(filename.c_str(), "w+");
-
-    if (!fp) {
-        send_udp_int(-2);
-        return;
-    }
-
     send_udp_int(1);
 
     int filesize = receive_udp_int();
 
-    cout << "File size: " << filesize << endl;
+    //check if negative; if so then the file does not exist so return
+    if (filesize < 0) {
+        return;
+    }
+
+    receive_tcp_file(attachment, filesize);
+    cout << "Received successfully." << endl;
+
+    //add new message to board
 }
 
 //returns whether or not the server has been cleaned up/shutdown
