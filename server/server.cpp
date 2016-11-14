@@ -201,6 +201,7 @@ void Server :: execute_command(string command) {
     } else if (command == "RDB") {
         read_board();
     } else if (command == "APN") {
+        append_file();
     } else if (command == "DWN") {
     }
 }
@@ -269,6 +270,38 @@ void Server :: list_boards() {
         }
     }
     send_udp_string(listing);
+}
+
+void Server :: append_file() {
+    string board = receive_udp_string();
+    string filename = receive_udp_string();
+
+    //if board does not exist
+    if (filenames.find(board) == filenames.end()) {
+        send_udp_int(0);    
+        return;
+    } 
+
+    string attachment = board + "-" + filename;
+
+    //if attachment file name already exists
+    if (filenames.find(attachment) != filenames.end()) {
+        send_udp_int(-1);
+        return;
+    }
+    
+    FILE *fp = fopen(filename.c_str(), "w+");
+
+    if (!fp) {
+        send_udp_int(-2);
+        return;
+    }
+
+    send_udp_int(1);
+
+    int filesize = receive_udp_int();
+
+    cout << "File size: " << filesize << endl;
 }
 
 //returns whether or not the server has been cleaned up/shutdown

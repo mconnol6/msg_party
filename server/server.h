@@ -43,10 +43,12 @@ class Server {
         void ack();
         bool signin_user();
         void send_tcp_file(string);
+        void receive_tcp_file(string);
         void execute_command(string);
         void create_board();
         void read_board();
         void list_boards();
+        void append_file();
         bool shutdwn();
 
     private:

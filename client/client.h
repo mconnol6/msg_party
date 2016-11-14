@@ -20,6 +20,8 @@ class Client {
         void ack();
         string receive_udp_string();
         int receive_udp_int();
+        void send_tcp_file(string);
+        void receive_tcp_file(string);
         bool signin_user();
         void print_commands();
         void send_input();
@@ -27,6 +29,7 @@ class Client {
         void create_board();
         void list_boards();
         void read_board();
+        void append_file();
         bool shutdwn();
 
     private:

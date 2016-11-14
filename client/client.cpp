@@ -4,6 +4,9 @@
 
 #include "client.h"
 #include "string.h"
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
 #include <cstdio>
 using namespace std;
 
@@ -77,6 +80,21 @@ void Client :: send_udp_int(int i) {
         cerr << "Client send error" << endl;
         exit(1);
     }
+}
+
+void Client :: send_tcp_file(string filename) {
+    char buf[4096];
+    int len;
+    FILE *fp = fopen(filename.c_str(), "r");
+    
+    while ((len = fread(buf, sizeof(char), sizeof(buf), fp)) > 0) {
+        if (send(tcp_s, buf, len, 0) == -1) {
+            cerr << "TCP Send error!" << endl;
+            exit(1);
+        }
+        bzero(buf, sizeof(buf));
+    }
+    fclose(fp);   
 }
 
 void Client :: ack() {
@@ -156,6 +174,7 @@ void Client :: send_input() {
         } else if (command == "RDB") {
             read_board();
         } else if (command == "APN") {
+            append_file();
         } else if (command == "DWN") {
         } else if (command == "DST") {
         } else if (command == "XIT") {
@@ -234,6 +253,51 @@ void Client :: list_boards() {
     string listing = receive_udp_string();
     cout << "Board listing:" << endl;
     cout << listing << endl;
+}
+
+void Client :: append_file() {
+    int file_size;
+    struct stat st;
+
+    //get user input
+    string board, filename;
+    cout << "Enter name of board: ";
+    cin >> board;
+    cout << "Enter file name: ";
+    cin >> filename;
+
+    //make sure that file exists
+    if (access(filename.c_str(), F_OK) == -1) {
+        cout << "The file does not exist." << endl;
+        return;
+    }
+
+    send_udp_string("APN");
+    send_udp_string(board);
+    send_udp_string(filename);
+
+    int success = receive_udp_int();
+    if (success == 0) {
+        cout << "Error: board does not exist." << endl;
+        return;
+    }
+
+    if (success == -1) {
+        cout << "Error: file has already been attached to the board." << endl;
+        return;
+    }
+
+    if (success == -2) {
+        cout << "Error creating file" << endl;
+        return;
+    }
+
+    if (success) {
+        //get file size
+        stat(filename.c_str(), &st);
+        file_size = st.st_size;
+        send_udp_int(file_size);
+    }
 }
 
 bool Client :: shutdwn() {
