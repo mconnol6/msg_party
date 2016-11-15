@@ -47,6 +47,7 @@ class Server {
         void receive_tcp_file(string, int);
         void execute_command(string);
         void create_board();
+        void post_message();
         void read_board();
         void list_boards();
         void append_file();

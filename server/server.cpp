@@ -227,6 +227,7 @@ void Server :: execute_command(string command) {
     if (command == "CRT") {
         create_board();
     } else if (command == "MSG") {
+        post_message();
     } else if (command == "DLT") {
     } else if (command == "EDT") {
     } else if (command == "LIS") {
@@ -270,6 +271,19 @@ void Server :: create_board() {
         send_udp_int(-1);
     }
 
+}
+
+void Server :: post_message() {
+    string board, msg;
+    board = receive_udp_string();
+    msg = receive_udp_string();
+
+    if (filenames.find(board) != filenames.end()) {
+        addMessage(board, msg, current_user, false);
+        send_udp_int(1);
+    } else {
+        send_udp_int(-1);
+    }
 }
 
 // sends board contents to client

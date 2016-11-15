@@ -103,6 +103,7 @@ void Client :: ack() {
 
 string Client :: receive_udp_string() {
     char buf[4096];
+    bzero(buf, sizeof(buf));
 
     if (recvfrom(udp_s, buf, sizeof(buf), 0, (struct sockaddr *)&udp_sin, (socklen_t *)&addr_len) == -1) {
         cerr << "Client receive error" << endl;
@@ -167,6 +168,7 @@ void Client :: send_input() {
         if (command == "CRT") {
             create_board();
         } else if (command == "MSG") {
+            post_message();
         } else if (command == "DLT") {
         } else if (command == "EDT") {
         } else if (command == "LIS") {
@@ -217,6 +219,29 @@ void Client :: create_board() {
         cout << "The board was not created successfully." << endl;
     } else {
         cout << "The board already exists." << endl;
+    }
+}
+
+void Client :: post_message() {
+    string board;
+    send_udp_string("MSG");
+    
+    cout << "Enter name of board to post to: ";
+    cin >> board;
+    cin.ignore();
+    send_udp_string(board);
+    
+    char buf[1024];
+    cout << "Enter message: ";
+    cin.getline(buf, sizeof(buf));
+    string msg(buf);
+    send_udp_string(msg);
+
+    int success = receive_udp_int();
+    if (success == 1) {
+        cout << "Message successfully added to board" << endl;
+    } else {
+        cout << "Error: board does not exist!" << endl;
     }
 }
 

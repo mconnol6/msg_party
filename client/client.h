@@ -27,6 +27,7 @@ class Client {
         void send_input();
         void close_sockets();
         void create_board();
+        void post_message();
         void list_boards();
         void read_board();
         void append_file();
