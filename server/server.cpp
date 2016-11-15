@@ -229,6 +229,7 @@ void Server :: execute_command(string command) {
     } else if (command == "MSG") {
         post_message();
     } else if (command == "DLT") {
+        delete_message();
     } else if (command == "EDT") {
     } else if (command == "LIS") {
         list_boards();
@@ -284,6 +285,30 @@ void Server :: post_message() {
     } else {
         send_udp_int(-1);
     }
+}
+
+// delete msg from board
+void Server :: delete_message() {
+    string board = receive_udp_string();
+    int index = receive_udp_int();
+
+    if (filenames.find(board) == filenames.end()) {
+        send_udp_int(-2);
+        return;
+    } else if (index < 0 || index > boards[board].msgs.size() - 1) {
+        send_udp_int(-1);
+        return;
+    } else if (boards[board].msgs[index].is_appended) {
+        send_udp_int(-1);
+        return;
+    } else if (boards[board].msgs[index].user != current_user) {
+        send_udp_int(0);
+        return;
+    }
+
+    boards[board].msgs.erase(boards[board].msgs.begin() + index);
+    rewrite_board_file(board);
+    send_udp_int(1);
 }
 
 // sends board contents to client
@@ -390,4 +415,26 @@ void Server :: addMessage(string board, string msg, string user, bool is_appende
     fwrite(add_msg.c_str(), sizeof(char), add_msg.length(), fp);
 
     fclose(fp);
+}
+
+void Server :: rewrite_board_file(string board) {
+    ofstream ofs;
+    ofs.open(board.c_str(), ofstream::out | ofstream::trunc);
+    
+    ofs << boards[board].creator << endl;
+    for (int i = 0; i < boards[board].msgs.size(); i++) {
+        Message msg = boards[board].msgs[i];
+        ofs << setw(5);
+        if (!msg.is_appended) {
+            ofs << i;
+        } else {
+            ofs << "";
+        }
+        ofs << setw(10)
+            << msg.user
+            << ": "
+            << msg.msg
+            << endl;
+    }
+    ofs.close();
 }

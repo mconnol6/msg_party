@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <map>
 #include <unordered_set>
@@ -47,11 +48,13 @@ class Server {
         void execute_command(string);
         void create_board();
         void post_message();
+        void delete_message();
         void read_board();
         void list_boards();
         void append_file();
         bool shutdwn();
         void addMessage(string, string, string, bool);
+        void rewrite_board_file(string);
 
     private:
         int udp_s;

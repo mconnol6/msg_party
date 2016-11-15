@@ -170,6 +170,7 @@ void Client :: send_input() {
         } else if (command == "MSG") {
             post_message();
         } else if (command == "DLT") {
+            delete_message();
         } else if (command == "EDT") {
         } else if (command == "LIS") {
             list_boards();
@@ -242,6 +243,31 @@ void Client :: post_message() {
         cout << "Message successfully added to board" << endl;
     } else {
         cout << "Error: board does not exist!" << endl;
+    }
+}
+
+void Client :: delete_message() {
+    string board;
+    send_udp_string("DLT");
+
+    cout << "Enter name of board to delete from: ";
+    cin >> board;
+    send_udp_string(board);
+
+    int msg;
+    cout << "Enter index of message to delete: ";
+    cin >> msg;
+    send_udp_int(msg);
+
+    int status = receive_udp_int();
+    if (status == -2) {
+        cout << "Error: Invalid board" << endl;
+    } else if (status == -1) {
+        cout << "Error: Invalid index" << endl;
+    } else if (status == 0) {
+        cout << "Error: Can't delete another user's message" << endl;
+    } else {
+        cout << "Message successfully deleted" << endl;
     }
 }
 
