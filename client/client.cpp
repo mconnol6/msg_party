@@ -210,6 +210,7 @@ void Client :: send_input() {
         } else if (command == "DWN") {
             download_file();
         } else if (command == "DST") {
+            destroy_board();
         } else if (command == "XIT") {
             send_udp_string("XIT");
             close_sockets();
@@ -442,6 +443,24 @@ void Client :: download_file() {
     receive_tcp_file(filename, file_size);
 
     cout << "Success!" << endl;
+}
+
+void Client :: destroy_board() {
+    send_udp_string("DST");
+    string board;
+
+    cout << "Enter name of board to be destroyed: ";
+    cin >> board;
+    send_udp_string(board);
+
+    int status = receive_udp_int();
+    if (status == -1) {
+        cout << "Error: Cannot destroy a board you did not create" << endl;
+    } else if (status == 0) {
+        cout << "Error: Board does not exist" << endl;
+    } else {
+        cout << "Board successfully destroyed" << endl;
+    }
 }
 
 bool Client :: shutdwn() {

@@ -34,6 +34,7 @@ class Client {
         void read_board();
         void append_file();
         void download_file();
+        void destroy_board();
         bool shutdwn();
 
     private:

@@ -29,6 +29,7 @@ typedef struct Board {
     vector<Message> msgs;
     string creator;
     string filename;
+    unordered_set<string> appended_files;
 } Board;
 
 class Server {
@@ -54,6 +55,7 @@ class Server {
         void list_boards();
         void append_file();
         void download_file();
+        void destroy_board();
         bool shutdwn();
         void addMessage(string, string, string, bool);
         void rewrite_board_file(string);

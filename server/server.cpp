@@ -240,6 +240,8 @@ void Server :: execute_command(string command) {
         append_file();
     } else if (command == "DWN") {
         download_file();
+    } else if (command == "DST") {
+        destroy_board();
     }
 }
 
@@ -400,6 +402,7 @@ void Server :: append_file() {
     addMessage(board, "Appended " + filename + " to the board.", current_user, true);
 
     filenames.insert(attachment);
+    boards[board].appended_files.insert(attachment);
 }
 
 void Server :: download_file() {
@@ -430,6 +433,30 @@ void Server :: download_file() {
     //send file
     send_tcp_file(attachment);
 }
+
+// destroy a board and appended files
+void Server :: destroy_board() {
+    string board = receive_udp_string();
+    
+    if (filenames.find(board) == filenames.end()) {
+        send_udp_int(0);
+        return;
+    } else if (boards[board].creator != current_user) {
+        send_udp_int(-1);
+        return;
+    }
+
+    for (auto &file : boards[board].appended_files) {
+        filenames.erase(file);
+        unlink(file.c_str());
+    }
+    unlink(board.c_str());
+    filenames.erase(board);
+    boards.erase(board);
+
+    send_udp_int(1);
+}
+
 
 //returns whether or not the server has been cleaned up/shutdown
 bool Server :: shutdwn() {
