@@ -1,3 +1,6 @@
+// main.cpp
+// John Rocha, Mary Connolly, Paul Dowling
+// jrocha2, mconnol6, pdowling
 #include "server.h"
 using namespace std;
 

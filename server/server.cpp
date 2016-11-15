@@ -1,4 +1,7 @@
 // server.cpp
+// John Rocha, Mary Connolly, Paul Dowling
+// jrocha2, mconnol6, pdowling
+
 #include "server.h"
 #include <vector>
 #include <iomanip>
