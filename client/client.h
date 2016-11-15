@@ -29,6 +29,7 @@ class Client {
         void create_board();
         void post_message();
         void delete_message();
+        void edit_message();
         void list_boards();
         void read_board();
         void append_file();

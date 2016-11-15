@@ -172,6 +172,7 @@ void Client :: send_input() {
         } else if (command == "DLT") {
             delete_message();
         } else if (command == "EDT") {
+            edit_message();
         } else if (command == "LIS") {
             list_boards();
         } else if (command == "RDB") {
@@ -268,6 +269,38 @@ void Client :: delete_message() {
         cout << "Error: Can't delete another user's message" << endl;
     } else {
         cout << "Message successfully deleted" << endl;
+    }
+}
+
+void Client :: edit_message() {
+    string board;
+    send_udp_string("EDT");
+
+    cout << "Enter name of board to edit: ";
+    cin >> board;
+    send_udp_string(board);
+
+    int msg;
+    cout << "Enter index of message to edit: ";
+    cin >> msg;
+    cin.ignore();
+    send_udp_int(msg);
+
+    char buf[1024];
+    cout << "Enter new message: ";
+    cin.getline(buf, sizeof(buf));
+    string message(buf);
+    send_udp_string(message);
+
+    int status = receive_udp_int();
+    if (status == -2) {
+        cout << "Error: Invalid board" << endl;
+    } else if (status == -1) {
+        cout << "Error: Invalid index" << endl;
+    } else if (status == 0) {
+        cout << "Error: Can't edit another user's message" << endl;
+    } else {
+        cout << "Message successfully edited" << endl;
     }
 }
 

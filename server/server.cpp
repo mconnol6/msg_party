@@ -231,6 +231,7 @@ void Server :: execute_command(string command) {
     } else if (command == "DLT") {
         delete_message();
     } else if (command == "EDT") {
+        edit_message();
     } else if (command == "LIS") {
         list_boards();
     } else if (command == "RDB") {
@@ -307,6 +308,31 @@ void Server :: delete_message() {
     }
 
     boards[board].msgs.erase(boards[board].msgs.begin() + index);
+    rewrite_board_file(board);
+    send_udp_int(1);
+}
+
+// edit msg on board
+void Server :: edit_message() {
+    string board = receive_udp_string();
+    int index = receive_udp_int();
+    string msg = receive_udp_string();
+
+    if (filenames.find(board) == filenames.end()) {
+        send_udp_int(-2);
+        return;
+    } else if (index < 0 || index > boards[board].msgs.size() - 1) {
+        send_udp_int(-1);
+        return;
+    } else if (boards[board].msgs[index].is_appended) {
+        send_udp_int(-1);
+        return;
+    } else if (boards[board].msgs[index].user != current_user) {
+        send_udp_int(0);
+        return;
+    }
+
+    boards[board].msgs[index].msg = msg;
     rewrite_board_file(board);
     send_udp_int(1);
 }

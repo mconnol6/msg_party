@@ -49,6 +49,7 @@ class Server {
         void create_board();
         void post_message();
         void delete_message();
+        void edit_message();
         void read_board();
         void list_boards();
         void append_file();
