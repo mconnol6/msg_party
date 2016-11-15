@@ -250,7 +250,7 @@ void Server :: create_board() {
     }
 
     //create board object
-    Board b({ vector<Message>(), current_user, board_name, 0 });
+    Board b({ vector<Message>(), current_user, board_name });
 
     boards[board_name] = b;
     
@@ -373,8 +373,7 @@ void Server :: addMessage(string board, string msg, string user, bool is_appende
     ss << setw(5);
 
     if (!is_appended) {
-        boards[board].nonappended_msgs++;
-        ss << boards[board].nonappended_msgs;
+        ss << boards[board].msgs.size()-1;
     } else {
         ss << "";
     }

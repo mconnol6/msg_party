@@ -28,7 +28,6 @@ typedef struct Board {
     vector<Message> msgs;
     string creator;
     string filename;
-    int nonappended_msgs;
 } Board;
 
 class Server {
